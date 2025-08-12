@@ -44,7 +44,7 @@
         const dropdown = document.createElement('div');
         dropdown.className = 'template-service-dropdown';
         dropdown.style.position = 'absolute';
-        dropdown.style.zIndex = '1000';
+        dropdown.style.zIndex = '10000'; // Higher than Craft's dropdowns
         
         // Position dropdown below input
         const rect = input.getBoundingClientRect();
@@ -175,22 +175,25 @@
 
     // Find and initialize all template inputs
     function findAndInitInputs() {
-        // Common selectors for template fields
+        // Only target specific template fields, not all inputs with "template" in name
         const selectors = [
-            'input[name*="template"]',
-            'input[name*="Template"]',
-            'input#entryType-template',
-            'input#section-template',
-            'input#category-template',
-            '.field input[type="text"][name$="[template]"]',
-            '.template-field input[type="text"]'
+            'input[name="settings[template]"]', // Site settings template field
+            'input[name="entryType[template]"]', // Entry type template
+            'input[name="section[template]"]', // Section template
+            'input[name="category[template]"]', // Category template
+            'input[name="settings[defaultTemplate]"]' // Default template field
         ];
 
         selectors.forEach(selector => {
             const inputs = document.querySelectorAll(selector);
             inputs.forEach(input => {
-                // Only init text inputs that look like template fields
-                if (input.type === 'text' && !input.hasAttribute('data-template-autocomplete')) {
+                // Check if Craft 5's own autocomplete is present
+                const hasNativeAutocomplete = input.closest('.autosuggest-container') || 
+                                             input.hasAttribute('data-autosuggest');
+                
+                // Only init if no native autocomplete and not already initialized
+                if (!hasNativeAutocomplete && input.type === 'text' && !input.hasAttribute('data-template-autocomplete')) {
+                    console.log('Template Service: Initializing for', input.name);
                     initAutocomplete(input);
                 }
             });

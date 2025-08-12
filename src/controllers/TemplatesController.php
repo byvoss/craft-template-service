@@ -28,72 +28,21 @@ class TemplatesController extends Controller
         // Get the base templates path
         $templatesPath = Craft::$app->getPath()->getSiteTemplatesPath();
         
-        // Get all sites
-        $sites = Craft::$app->getSites()->getAllSites();
-        
-        // Check each site for its template root
-        foreach ($sites as $site) {
-            // Get the site's template mode setting
-            $siteSettings = $site->getSettings();
-            $templateRoot = isset($siteSettings['template']) ? $siteSettings['template'] : null;
-            
-            // If site has a custom template root defined, use that
-            if ($templateRoot) {
-                $sitePath = $templatesPath . DIRECTORY_SEPARATOR . $templateRoot;
-                if (is_dir($sitePath)) {
-                    $siteTemplates = $this->scanTemplates($sitePath, $templateRoot);
-                    $templates = array_merge($templates, $siteTemplates);
-                }
-            } else {
-                // Check if there's a folder with the site handle
-                $siteHandle = $site->handle;
-                $sitePath = $templatesPath . DIRECTORY_SEPARATOR . $siteHandle;
-                
-                if (is_dir($sitePath)) {
-                    $siteTemplates = $this->scanTemplates($sitePath, $siteHandle);
-                    $templates = array_merge($templates, $siteTemplates);
-                }
-            }
-        }
-        
-        // Also scan root templates directory for files not in site folders
+        // Scan the entire templates directory recursively
         if (is_dir($templatesPath)) {
-            $items = scandir($templatesPath);
-            foreach ($items as $item) {
-                if ($item[0] === '.') continue;
-                
-                $fullPath = $templatesPath . DIRECTORY_SEPARATOR . $item;
-                
-                // Only add root level templates (not directories we already scanned)
-                if (is_file($fullPath) && str_ends_with($item, '.twig')) {
-                    $templatePath = substr($item, 0, -5);
-                    $templates[] = [
-                        'path' => $templatePath,
-                        'type' => 'template',
-                        'label' => $templatePath,
-                        'fullLabel' => $templatePath
-                    ];
-                }
-            }
-        }
-        
-        // Remove duplicates
-        $uniqueTemplates = [];
-        $seen = [];
-        foreach ($templates as $template) {
-            if (!isset($seen[$template['path']])) {
-                $uniqueTemplates[] = $template;
-                $seen[$template['path']] = true;
-            }
+            $templates = $this->scanTemplates($templatesPath);
         }
         
         // Sort templates alphabetically
-        usort($uniqueTemplates, function($a, $b) {
+        usort($templates, function($a, $b) {
             return strcmp($a['path'], $b['path']);
         });
         
+        // Add debug info
+        Craft::info('Template Service found ' . count($templates) . ' templates', __METHOD__);
+        
         return $this->asJson([
-            'templates' => $uniqueTemplates
+            'templates' => $templates
         ]);
     }
     
