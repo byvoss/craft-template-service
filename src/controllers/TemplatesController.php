@@ -28,29 +28,72 @@ class TemplatesController extends Controller
         // Get the base templates path
         $templatesPath = Craft::$app->getPath()->getSiteTemplatesPath();
         
-        // Scan main templates directory
-        $mainTemplates = $this->scanTemplates($templatesPath);
-        $templates = array_merge($templates, $mainTemplates);
-        
-        // Also scan site-specific directories if they exist
+        // Get all sites
         $sites = Craft::$app->getSites()->getAllSites();
+        
+        // Check each site for its template root
         foreach ($sites as $site) {
-            $siteHandle = $site->handle;
-            $sitePath = $templatesPath . DIRECTORY_SEPARATOR . $siteHandle;
+            // Get the site's template mode setting
+            $siteSettings = $site->getSettings();
+            $templateRoot = isset($siteSettings['template']) ? $siteSettings['template'] : null;
             
-            if (is_dir($sitePath)) {
-                $siteTemplates = $this->scanTemplates($sitePath, $siteHandle);
-                $templates = array_merge($templates, $siteTemplates);
+            // If site has a custom template root defined, use that
+            if ($templateRoot) {
+                $sitePath = $templatesPath . DIRECTORY_SEPARATOR . $templateRoot;
+                if (is_dir($sitePath)) {
+                    $siteTemplates = $this->scanTemplates($sitePath, $templateRoot);
+                    $templates = array_merge($templates, $siteTemplates);
+                }
+            } else {
+                // Check if there's a folder with the site handle
+                $siteHandle = $site->handle;
+                $sitePath = $templatesPath . DIRECTORY_SEPARATOR . $siteHandle;
+                
+                if (is_dir($sitePath)) {
+                    $siteTemplates = $this->scanTemplates($sitePath, $siteHandle);
+                    $templates = array_merge($templates, $siteTemplates);
+                }
+            }
+        }
+        
+        // Also scan root templates directory for files not in site folders
+        if (is_dir($templatesPath)) {
+            $items = scandir($templatesPath);
+            foreach ($items as $item) {
+                if ($item[0] === '.') continue;
+                
+                $fullPath = $templatesPath . DIRECTORY_SEPARATOR . $item;
+                
+                // Only add root level templates (not directories we already scanned)
+                if (is_file($fullPath) && str_ends_with($item, '.twig')) {
+                    $templatePath = substr($item, 0, -5);
+                    $templates[] = [
+                        'path' => $templatePath,
+                        'type' => 'template',
+                        'label' => $templatePath,
+                        'fullLabel' => $templatePath
+                    ];
+                }
+            }
+        }
+        
+        // Remove duplicates
+        $uniqueTemplates = [];
+        $seen = [];
+        foreach ($templates as $template) {
+            if (!isset($seen[$template['path']])) {
+                $uniqueTemplates[] = $template;
+                $seen[$template['path']] = true;
             }
         }
         
         // Sort templates alphabetically
-        usort($templates, function($a, $b) {
+        usort($uniqueTemplates, function($a, $b) {
             return strcmp($a['path'], $b['path']);
         });
         
         return $this->asJson([
-            'templates' => $templates
+            'templates' => $uniqueTemplates
         ]);
     }
     
