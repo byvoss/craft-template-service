@@ -1,0 +1,126 @@
+/**
+ * Template Service plugin for Craft CMS 5.x
+ * 
+ * @author ByVoss Technologies
+ * @copyright Copyright (c) 2025 ByVoss Technologies
+ * @link https://byvoss.tech
+ * @license MIT
+ */
+
+.template-service-dropdown {
+    background: #fff;
+    border: 1px solid #cdd8e4;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+}
+
+.template-service-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #f3f7fc;
+    transition: background-color 0.2s;
+}
+
+.template-service-item:last-child {
+    border-bottom: none;
+}
+
+.template-service-item:hover,
+.template-service-item.active {
+    background-color: #f3f7fc;
+}
+
+.template-service-item.active {
+    background-color: #e4edf9;
+}
+
+.template-icon {
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+
+.template-service-no-results {
+    padding: 12px;
+    text-align: center;
+    color: #8c9cb1;
+    font-style: italic;
+}
+
+/* Highlight matching text */
+.template-service-item mark {
+    background-color: #fff3cd;
+    font-weight: 500;
+    padding: 0 2px;
+}
+
+/* Loading state */
+.template-service-loading {
+    padding: 12px;
+    text-align: center;
+    color: #8c9cb1;
+}
+
+.template-service-loading::after {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-left: 8px;
+    border: 2px solid #8c9cb1;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: template-service-spin 0.8s linear infinite;
+}
+
+@keyframes template-service-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Scrollbar styling */
+.template-service-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.template-service-dropdown::-webkit-scrollbar-track {
+    background: #f3f7fc;
+    border-radius: 4px;
+}
+
+.template-service-dropdown::-webkit-scrollbar-thumb {
+    background: #cdd8e4;
+    border-radius: 4px;
+}
+
+.template-service-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #b5c3d5;
+}
+
+/* Path display */
+.template-service-path {
+    color: #8c9cb1;
+    font-size: 12px;
+    margin-left: 28px;
+    margin-top: 2px;
+}
+
+/* Integration with Craft's field layout */
+.field input[data-template-autocomplete] {
+    padding-right: 30px;
+}
+
+.field input[data-template-autocomplete]::after {
+    content: '▼';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8c9cb1;
+    pointer-events: none;
+}

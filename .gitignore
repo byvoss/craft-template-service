@@ -1,0 +1,26 @@
+# Composer
+/vendor/
+composer.lock
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+/tests/_output/
+/tests/_support/_generated/
+
+# Build
+/dist/
+*.zip
