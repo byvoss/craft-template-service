@@ -58,15 +58,33 @@ class TemplateService extends Plugin
             function () {
                 $view = Craft::$app->getView();
                 
-                // Only inject on section/entry type edit pages
+                // Inject on relevant CP pages
                 $segments = Craft::$app->getRequest()->getSegments();
                 $isRelevantPage = false;
                 
+                // Check for pages where template fields appear
+                $relevantSegments = [
+                    'sections',
+                    'entry-types', 
+                    'singles',
+                    'structures',
+                    'categories',
+                    'globals',
+                    'users',
+                    'settings' // Include settings pages
+                ];
+                
                 foreach ($segments as $segment) {
-                    if (in_array($segment, ['sections', 'entry-types', 'singles', 'structures'])) {
+                    if (in_array($segment, $relevantSegments)) {
                         $isRelevantPage = true;
                         break;
                     }
+                }
+                
+                // Also check if we're on a site settings page
+                $currentRoute = Craft::$app->getRequest()->getFullPath();
+                if (str_contains($currentRoute, 'settings/sites')) {
+                    $isRelevantPage = true;
                 }
                 
                 if ($isRelevantPage && Craft::$app->getRequest()->getIsCpRequest()) {
