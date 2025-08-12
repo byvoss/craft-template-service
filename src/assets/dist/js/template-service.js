@@ -175,28 +175,39 @@
 
     // Find and initialize all template inputs
     function findAndInitInputs() {
-        // Only target specific template fields, not all inputs with "template" in name
-        const selectors = [
-            'input[name="settings[template]"]', // Site settings template field
-            'input[name="entryType[template]"]', // Entry type template
-            'input[name="section[template]"]', // Section template
-            'input[name="category[template]"]', // Category template
-            'input[name="settings[defaultTemplate]"]' // Default template field
-        ];
-
-        selectors.forEach(selector => {
-            const inputs = document.querySelectorAll(selector);
-            inputs.forEach(input => {
-                // Check if Craft 5's own autocomplete is present
-                const hasNativeAutocomplete = input.closest('.autosuggest-container') || 
-                                             input.hasAttribute('data-autosuggest');
+        // Find template inputs - broader search but with checks
+        const inputs = document.querySelectorAll('input[type="text"]');
+        
+        inputs.forEach(input => {
+            // Check if this is likely a template field
+            const name = input.name || '';
+            const id = input.id || '';
+            const placeholder = input.placeholder || '';
+            
+            const isTemplateField = 
+                name.includes('template') || 
+                name.includes('Template') ||
+                id.includes('template') ||
+                id.includes('Template') ||
+                placeholder.toLowerCase().includes('template');
+            
+            if (isTemplateField && !input.hasAttribute('data-template-autocomplete')) {
+                console.log('Template Service: Found template field:', name || id);
                 
-                // Only init if no native autocomplete and not already initialized
-                if (!hasNativeAutocomplete && input.type === 'text' && !input.hasAttribute('data-template-autocomplete')) {
-                    console.log('Template Service: Initializing for', input.name);
-                    initAutocomplete(input);
+                // Hide Craft's native dropdown if present
+                const craftDropdown = input.closest('.field')?.querySelector('.suggestions');
+                if (craftDropdown) {
+                    craftDropdown.style.display = 'none';
                 }
-            });
+                
+                // Also hide any autosuggest containers
+                const autosuggestContainer = input.nextElementSibling;
+                if (autosuggestContainer && autosuggestContainer.classList.contains('suggestions')) {
+                    autosuggestContainer.style.display = 'none';
+                }
+                
+                initAutocomplete(input);
+            }
         });
     }
 
